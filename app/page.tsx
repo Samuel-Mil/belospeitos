@@ -41,6 +41,7 @@ export default async function Home() {
   // Mapear as acoes positivas
   const buyStocks: Stock[] = buy.map((r): Stock => ({
     ticker: r?.symbol ?? r?.ticker ?? '',
+    name: r?.shortName ?? r?.longName ?? '',
     date: toDate(r?.regularMarketTime ?? r?.updatedAt ?? r?.date),
     change: toPercent(r?.regularMarketChangePercent ?? r?.changePercent),
     price: Number(r?.regularMarketPrice ?? 0),
@@ -52,6 +53,7 @@ export default async function Home() {
   // Mapear as acoes negativas
   const sellStocks: Stock[] = sell.map((r): Stock => ({
     ticker: r?.symbol ?? r?.ticker ?? '',
+    name: r?.shortName ?? r?.longName ?? '',
     date: toDate(r?.regularMarketTime ?? r?.updatedAt ?? r?.date),
     change: toPercent(r?.regularMarketChangePercent ?? r?.changePercent),
     price: Number(r?.regularMarketPrice ?? 0),
@@ -91,7 +93,7 @@ export default async function Home() {
                 className="border-2 border-green-500 rounded-xl p-5 bg-green-950/20"
               >
                 <div className="text-green-400 text-xl font-semibold mb-2">
-                  {stock.ticker}
+                  {stock.ticker} <span className="text-gray-400 text-base">— {stock.name}</span>
                 </div>
                 <div className="text-gray-400 text-sm mb-2">{stock.date}</div>
                 <div className="flex items-center text-green-400 text-lg mb-3">
@@ -117,7 +119,7 @@ export default async function Home() {
                 className="border-2 border-red-500 rounded-xl p-5 bg-red-950/20"
               >
                 <div className="text-red-400 text-xl font-semibold mb-2">
-                  {stock.ticker}
+                  {stock.ticker} <span className="text-gray-400 text-base">— {stock.name}</span>
                 </div>
                 <div className="text-gray-400 text-sm mb-2">{stock.date}</div>
                 <div className="flex items-center text-red-400 text-lg mb-3">

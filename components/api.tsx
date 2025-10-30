@@ -48,7 +48,7 @@ export async function getQuote(ticker: string): Promise<QuoteData> {
   return { results: aggregatedResults } as QuoteData;
 }
 
-export async function listSymbols(limit: number = 60, page: number = 1): Promise<string[]> {
+export async function listSymbols(limit: number = 15, page: number = 1): Promise<string[]> {
   const token = process.env.BRAPI_API_KEY;
   
   const params = new URLSearchParams({ limit: String(limit), page: String(page) });

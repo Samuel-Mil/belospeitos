@@ -22,6 +22,7 @@ export interface Stock {
   description: string;
   type?: StockType;
   status?: StockStatus;
+  name?: string;
 }
 
 export interface MarketChartProps {
