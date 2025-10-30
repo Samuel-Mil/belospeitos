@@ -8,7 +8,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <head>
-        <title>Belospeitos Ciberneticos</title>
+        <title>Stock Speculator</title>
       </head>
       <body>
         {children}
