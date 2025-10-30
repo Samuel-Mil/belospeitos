@@ -1,5 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
-import { listSymbols, getQuote } from "@/components/api";
+import { listSymbols, getQuote, QuoteData } from "@/components/api";
+
+
+type ApiQuoteResponse = {
+  results: any[]; 
+};
+
+type SymbolDataMap = {
+  [key: string]: any[];
+};
 
 export default class Gemini {
   private ia: GoogleGenAI;
@@ -23,15 +32,30 @@ export default class Gemini {
     }
   }
 
-  public async SHGKKG(){
-    // GET SYMBOLS -> GET_QUOTE(SYMBOL) -> JSON_ACAO -> JUNTAR TODAS AS ACOES -> RETORNAR JSON
+  public async buscarCotacoesMapeadas(): Promise<SymbolDataMap> {
+    const getSymbols = (await listSymbols(3, 1));
+    console.log(`-------------------------Iniciando busca para: ${getSymbols.join(', ')}-------------------------`);
+
+    const promessas: Promise<ApiQuoteResponse>[] = getSymbols.map(async symbol => {
+        return await getQuote(symbol);
+    });
+
+    const resultadosArray = await Promise.all(promessas);
+
+    const dataFinal = getSymbols.reduce((acumulador, symbol, index) => {
+        const resultadoBruto = resultadosArray[index];
+        const dadosExtraidos = resultadoBruto.results;
+        acumulador[symbol] = dadosExtraidos;
+        
+        return acumulador;
+    }, {} as SymbolDataMap);
+
+    return dataFinal;
   }
 
   public async responseGenerator(){
-    const getSymbols = (await listSymbols(60, 1)).toString();
-
-    console.log(getSymbols);
-
+    const data = await this.buscarCotacoesMapeadas();
+    console.log(data);
 
     const prompt = `
       Você é um analista financeiro sênior especializado em mercado de ações, com profundo conhecimento em macroeconomia global, análise técnica e fundamentalista, política monetária e eventos geopolíticos.
@@ -57,7 +81,7 @@ export default class Gemini {
 
       Entrada de Dados:
 
-      ${getSymbols}
+      ${data}
 
       Esta lista conterá informações sobre diversas ações, incluindo ticker, nome, data, variação percentual e preço.
 
