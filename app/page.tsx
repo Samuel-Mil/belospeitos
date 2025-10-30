@@ -2,7 +2,7 @@ import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 import Chart from '../components/chart';
 import type { Stock } from '../components/chart';
-import { getQuote } from '../components/api';
+import { getQuote, listSymbols } from '../components/api';
 
 // aaaaaaaaaaaaa
 function toPercent(n: number | undefined): string {
@@ -20,27 +20,7 @@ function toDate(ts: number | string | undefined): string {
 }
 
 export default async function Home() {
-
-  const token = process.env.BRAPI_API_KEY;
-  
-  const listParams = new URLSearchParams({ limit: '60', page: '1' });
-
-  if (token) listParams.set('token', token);
-
-  const listRes = await fetch(
-    `https://brapi.dev/api/quote/list?${listParams.toString()}`,
-    { next:
-      {
-        revalidate: 180
-      }
-    }
-  );
-
-  //verificacao da lista de acoes disponiveis
-  if (!listRes.ok) throw new Error('Failed to fetch tickers list');
-  const listJson = await listRes.json();
-
-  const symbols: string[] = (listJson?.stocks ?? []).map((s: any) => s.stock).filter(Boolean);
+  const symbols: string[] = await listSymbols(60, 1);
 
   // Obter cotações com a API compartilhada (respeita 1 ticker por requisição)
   const quotes = symbols.length ? await getQuote(symbols.slice(0, 30).join(',')) : { results: [] as any[] };
