@@ -3,7 +3,7 @@ import Brapi from 'brapi';
 const brapi = new Brapi({
   apiKey: process.env.BRAPI_API_KEY,
   timeout: 60000,
-  maxRetries: 3,
+  maxRetries: 2,
 });
 
 export interface QuoteData {
@@ -29,7 +29,7 @@ export async function getQuote(ticker: string): Promise<QuoteData> {
   for (const t of tickers) {
     try {
       const response = await brapi.quote.retrieve(t, {
-        modules: ['summaryProfile'],
+        modules: ['summaryProfile'], //1 modulo somente pois eh o que o plano gratuito da API permite
       });
       const data = response as unknown as QuoteData;
       if (data?.results?.length) {
