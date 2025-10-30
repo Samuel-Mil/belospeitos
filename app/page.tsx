@@ -1,10 +1,11 @@
 import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
-
+import Image from 'next/image';
+import Chart from '../components/chart';
 export default function Home() {
   const buyStocks = [
-    { ticker: '$AAPL', date: '12/01', change: '+0.2%', description: 'Strong momentum with tech sector rally' },
-    { ticker: '$MSFT', date: '12/01', change: '+0.2%', description: 'Cloud services driving growth' },
-    { ticker: '$NVDA', date: '12/01', change: '+0.2%', description: 'AI chip demand remains strong' }
+    { ticker: '$AAPL', date: '12/01', change: '+0.2%', price: 150.00, type: 'buy', status: 'bullish', description: 'Strong momentum with tech sector rally' },
+    { ticker: '$MSFT', date: '12/01', change: '+0.2%', price: 150.00, type: 'buy', status: 'bullish', description: 'Cloud services driving growth' },
+    { ticker: '$NVDA', date: '12/01', change: '+0.2%', price: 150.00, type: 'buy', status: 'bullish', description: 'AI chip demand remains strong' }
   ];
 
   const sellStocks = [
@@ -18,29 +19,21 @@ export default function Home() {
       {/* Navigation Bar */}
       <nav className="border-b border-gray-800 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="text-2xl font-bold border-2 border-white px-4 py-2 rounded">
-            Logo
-          </div>
-          <button className="border border-gray-600 px-6 py-2 rounded hover:bg-gray-900 transition">
-            Menu
-          </button>
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={50}
+              height={50}
+            />
+
+            <h1>Belospeitos Ciberneticos</h1>
         </div>
       </nav>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Chart Area */}
-        <div className="border border-gray-700 rounded-lg p-6 mb-8 h-48 flex items-center justify-center">
-          <svg className="w-full h-full" viewBox="0 0 800 150">
-            <polyline
-              points="50,100 100,70 150,85 200,60 250,45 300,55 350,40 400,50 450,65 500,55 550,70 600,50 650,60 700,75 750,65"
-              fill="none"
-              stroke="#10b981"
-              strokeWidth="2"
-            />
-          </svg>
-        </div>
-
+        <Chart stocks={buyStocks} />
         <h2 className="text-2xl font-bold mb-6">Melhores compras</h2>
 
         {/* Buy Stocks Section */}
