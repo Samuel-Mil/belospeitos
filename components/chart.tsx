@@ -137,7 +137,7 @@ export default function MarketChart({ stocks }: MarketChartProps) {
               borderWidth: 1,
               callbacks: {
                 label: function(context) {
-                  return `$${context.parsed.y.toFixed(2)}`;
+                  return `$${context.parsed.y?.toFixed(2)}`;
                 },
                 title: function() {
                   return 'Market Price';

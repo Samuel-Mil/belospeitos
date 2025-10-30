@@ -34,7 +34,7 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Chart Area */}
         <Chart stocks={buyStocks} />
-        <h2 className="text-2xl font-bold mb-6">Melhores compras</h2>
+        <h2 className="text-2xl font-bold mb-4 mt-4">Melhores compras e vendas</h2>
 
         {/* Buy Stocks Section */}
         <div className="mb-12">
