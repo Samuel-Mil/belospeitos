@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Chart from '../components/chart';
 import type { Stock } from '../components/chart';
 import { getQuote, listSymbols } from '../components/api';
+import RefreshButton from '../components/refresh-button';
 
 // aaaaaaaaaaaaa
 function toPercent(n: number | undefined): string {
@@ -138,9 +139,7 @@ export default async function Home() {
 
         {/* Refresh Button */}
         <div className="flex justify-center mt-12">
-          <button className="border-2 border-white rounded-full p-4 hover:bg-gray-900 transition-all hover:scale-110">
-            <RefreshCw className="w-8 h-8" />
-          </button>
+          <RefreshButton />
         </div>
       </main>
     </div>
