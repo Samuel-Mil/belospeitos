@@ -1,18 +1,84 @@
 import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 import Chart from '../components/chart';
-export default function Home() {
-  const buyStocks = [
-    { ticker: '$AAPL', date: '12/01', change: '+0.2%', price: 150.00, type: 'buy', status: 'bullish', description: 'Strong momentum with tech sector rally' },
-    { ticker: '$MSFT', date: '12/01', change: '+0.2%', price: 150.00, type: 'buy', status: 'bullish', description: 'Cloud services driving growth' },
-    { ticker: '$NVDA', date: '12/01', change: '+0.2%', price: 150.00, type: 'buy', status: 'bullish', description: 'AI chip demand remains strong' }
-  ];
+import type { Stock } from '../components/chart';
+import { getQuote } from '../components/api';
 
-  const sellStocks = [
-    { ticker: '$TSLA', date: '12/01', change: '-0.2%', description: 'Profit taking after recent gains' },
-    { ticker: '$META', date: '12/01', change: '-0.2%', description: 'Regulatory concerns emerging' },
-    { ticker: '$AMZN', date: '12/01', change: '-0.2%', description: 'Retail sector showing weakness' }
-  ];
+// aaaaaaaaaaaaa
+function toPercent(n: number | undefined): string {
+  return typeof n === 'number' ? `${n >= 0 ? '+' : ''}${n.toFixed(2)}%` : '0.00%';
+}
+
+function toDate(ts: number | string | undefined): string {
+  const format = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  if (typeof ts === 'number') return format(new Date(ts * 1000));
+  if (typeof ts === 'string') {
+    const parsed = new Date(ts);
+    return isNaN(parsed.getTime()) ? ts : format(parsed);
+  }
+  return format(new Date());
+}
+
+export default async function Home() {
+
+  const token = process.env.BRAPI_API_KEY;
+  
+  const listParams = new URLSearchParams({ limit: '60', page: '1' });
+
+  if (token) listParams.set('token', token);
+
+  const listRes = await fetch(
+    `https://brapi.dev/api/quote/list?${listParams.toString()}`,
+    { next:
+      {
+        revalidate: 180
+      }
+    }
+  );
+
+  //verificacao da lista de acoes disponiveis
+  if (!listRes.ok) throw new Error('Failed to fetch tickers list');
+  const listJson = await listRes.json();
+
+  const symbols: string[] = (listJson?.stocks ?? []).map((s: any) => s.stock).filter(Boolean);
+
+  // Obter cotações com a API compartilhada (respeita 1 ticker por requisição)
+  const quotes = symbols.length ? await getQuote(symbols.slice(0, 30).join(',')) : { results: [] as any[] };
+  const results: any[] = quotes.results ?? [];
+
+  // verificacao da porcentagem media de mercado positiva
+  const buy = results
+    .filter((r) => typeof r?.regularMarketChangePercent === 'number' && r.regularMarketChangePercent > 0)
+    .sort((a, b) => (b.regularMarketChangePercent ?? 0) - (a.regularMarketChangePercent ?? 0))
+    .slice(0, 3);
+
+  // verificacao da porcentagem media de mercado negativa
+  const sell = results
+    .filter((r) => typeof r?.regularMarketChangePercent === 'number' && r.regularMarketChangePercent < 0)
+    .sort((a, b) => (a.regularMarketChangePercent ?? 0) - (b.regularMarketChangePercent ?? 0))
+    .slice(0, 3);
+
+  // Mapear as acoes positivas
+  const buyStocks: Stock[] = buy.map((r): Stock => ({
+    ticker: r?.symbol ?? r?.ticker ?? '',
+    date: toDate(r?.regularMarketTime ?? r?.updatedAt ?? r?.date),
+    change: toPercent(r?.regularMarketChangePercent ?? r?.changePercent),
+    price: Number(r?.regularMarketPrice ?? 0),
+    type: 'buy',
+    status: 'bullish',
+    description: '—',
+  }));
+  
+  // Mapear as acoes negativas
+  const sellStocks: Stock[] = sell.map((r): Stock => ({
+    ticker: r?.symbol ?? r?.ticker ?? '',
+    date: toDate(r?.regularMarketTime ?? r?.updatedAt ?? r?.date),
+    change: toPercent(r?.regularMarketChangePercent ?? r?.changePercent),
+    price: Number(r?.regularMarketPrice ?? 0),
+    type: 'sell',
+    status: 'bearish',
+    description: '—',
+  }));
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
@@ -32,7 +98,7 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Chart Area */}
+        {/* Chart Area - usa as 3 em alta */}
         <Chart stocks={buyStocks} />
         <h2 className="text-2xl font-bold mb-6">Melhores compras</h2>
 
