@@ -3,11 +3,22 @@ import { listSymbols, getQuote, QuoteData } from "@/components/api";
 
 
 type ApiQuoteResponse = {
-  results: any[]; 
+  results: any[];
 };
 
 type SymbolDataMap = {
   [key: string]: any[];
+};
+
+export type GeminiStockResponse = {
+  ticker: string;
+  name: string;
+  date: string;
+  change: string;
+  price: string | number;
+  description: string;
+  type: 'buy' | 'sell';
+  status: 'bullish' | 'bearish' | 'neutral';
 };
 
 export default class Gemini {
@@ -26,15 +37,37 @@ export default class Gemini {
       return response.text ?? 'API não retornou texto.';
     } catch (error) {
       
-      console.error("Erro ao chamar a API Gemini:", error); 
+      console.error("Erro ao chamar a API Gemini:", error);
       
       return 'Erro ao gerar conteudo';
     }
   }
 
+  private parseJsonResponse(text: string): GeminiStockResponse[] {
+    try {
+      // Remove markdown code blocks se existirem
+      let cleaned = text.trim();
+      if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '');
+      }
+
+      const parsed = JSON.parse(cleaned) as GeminiStockResponse[];
+      
+      if (!Array.isArray(parsed)) {
+        throw new Error('Resposta não é um array');
+      }
+
+      return parsed;
+    } catch (error) {
+      console.error('Erro ao parsear JSON do Gemini:', error);
+      console.error('Texto recebido:', text);
+      return [];
+    }
+  }
+
   public async buscarCotacoesMapeadas(): Promise<SymbolDataMap> {
     const getSymbols = (await listSymbols(3, 1));
-    console.log(`-------------------------Iniciando busca para: ${getSymbols.join(', ')}-------------------------`);
+    // console.log(`-------------------------Iniciando busca para: ${getSymbols.join(', ')}-------------------------`);
 
     const promessas: Promise<ApiQuoteResponse>[] = getSymbols.map(async symbol => {
         return await getQuote(symbol);
@@ -142,7 +175,7 @@ export default class Gemini {
     `;
 
     const response = await this.generateContent(prompt);
-
-    return response;
+    const parsed = this.parseJsonResponse(response);
+    return parsed;
   }
 }
