@@ -3,13 +3,15 @@
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { refreshMarketData } from '@/app/actions';
 
 export default function RefreshButton() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const handleRefresh = () => {
-    startTransition(() => {
+    startTransition(async () => {
+      await refreshMarketData();
       router.refresh();
     });
   };

@@ -58,7 +58,7 @@ export async function listSymbols(limit: number = 15, page: number = 1): Promise
   const res = await fetch(
     `https://brapi.dev/api/quote/list?${params.toString()}`,
     { next:
-      { revalidate: 180 }
+      { revalidate: 180, tags: ['market'] }
     }
   );
 
