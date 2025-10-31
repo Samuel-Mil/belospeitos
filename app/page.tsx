@@ -2,8 +2,8 @@ import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 import Chart from '../components/chart';
 import type { Stock } from '../components/chart';
-import { getQuote, listSymbols } from '../components/api';
 import RefreshButton from '../components/refresh-button';
+import Gemini from '../utils/gemini';
 
 // aaaaaaaaaaaaa
 function toPercent(n: number | undefined): string {
@@ -21,46 +21,35 @@ function toDate(ts: number | string | undefined): string {
 }
 
 export default async function Home() {
-  const symbols: string[] = await listSymbols(60, 1);
+  // Obter recomendações da IA
+  const gemini = new Gemini();
+  const aiStocks = await gemini.responseGenerator();
 
-  // Obter cotações com a API compartilhada (respeita 1 ticker por requisição)
-  const quotes = symbols.length ? await getQuote(symbols.slice(0, 30).join(',')) : { results: [] as any[] };
-  const results: any[] = quotes.results ?? [];
+  // Separar compras e vendas
+  const buy = aiStocks.filter((s) => s.type === 'buy');
+  const sell = aiStocks.filter((s) => s.type === 'sell');
 
-  // verificacao da porcentagem media de mercado positiva
-  const buy = results
-    .filter((r) => typeof r?.regularMarketChangePercent === 'number' && r.regularMarketChangePercent > 0)
-    .sort((a, b) => (b.regularMarketChangePercent ?? 0) - (a.regularMarketChangePercent ?? 0))
-    .slice(0, 3);
-
-  // verificacao da porcentagem media de mercado negativa
-  const sell = results
-    .filter((r) => typeof r?.regularMarketChangePercent === 'number' && r.regularMarketChangePercent < 0)
-    .sort((a, b) => (a.regularMarketChangePercent ?? 0) - (b.regularMarketChangePercent ?? 0))
-    .slice(0, 3);
-
-  // Mapear as acoes positivas
-  const buyStocks: Stock[] = buy.map((r): Stock => ({
-    ticker: r?.symbol ?? r?.ticker ?? '',
-    name: r?.shortName ?? r?.longName ?? '',
-    date: toDate(r?.regularMarketTime ?? r?.updatedAt ?? r?.date),
-    change: toPercent(r?.regularMarketChangePercent ?? r?.changePercent),
-    price: Number(r?.regularMarketPrice ?? 0),
-    type: 'buy',
-    status: 'bullish',
-    description: '—',
+  // Mapear para o formato Stock da UI
+  const buyStocks: Stock[] = buy.map((s): Stock => ({
+    ticker: s.ticker,
+    name: s.name,
+    date: s.date,
+    change: s.change,
+    price: typeof s.price === 'string' ? parseFloat(s.price) : s.price,
+    type: s.type,
+    status: s.status,
+    description: s.description,
   }));
   
-  // Mapear as acoes negativas
-  const sellStocks: Stock[] = sell.map((r): Stock => ({
-    ticker: r?.symbol ?? r?.ticker ?? '',
-    name: r?.shortName ?? r?.longName ?? '',
-    date: toDate(r?.regularMarketTime ?? r?.updatedAt ?? r?.date),
-    change: toPercent(r?.regularMarketChangePercent ?? r?.changePercent),
-    price: Number(r?.regularMarketPrice ?? 0),
-    type: 'sell',
-    status: 'bearish',
-    description: '—',
+  const sellStocks: Stock[] = sell.map((s): Stock => ({
+    ticker: s.ticker,
+    name: s.name,
+    date: s.date,
+    change: s.change,
+    price: typeof s.price === 'string' ? parseFloat(s.price) : s.price,
+    type: s.type,
+    status: s.status,
+    description: s.description,
   }));
 
   return (
